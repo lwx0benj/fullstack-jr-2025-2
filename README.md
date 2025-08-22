@@ -110,6 +110,7 @@ Swagger: http://localhost:8080/swagger-ui.html ou http://localhost:8000/docs
 3. **Deploy** em servidor público (Heroku, Vercel, Railway, etc.)
 4. **Documentação Swagger** acessível
 5. **Collection Postman** ou arquivo com exemplos de requisições
+6. **Testes Automatizados** para o projeto, cobrindo as principais funcionalidades do backend (autenticação e gerenciamento de tarefas).
 
 ## ✅ Recursos Permitidos
 - Documentação oficial das tecnologias

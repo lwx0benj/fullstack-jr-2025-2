@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 
+from backend.routers.auth import auth
+
 app = FastAPI()
-
-
-@app.get('/')
-def hello_world():
-    return {'message': 'Hello, World!'}
+app.include_router(auth)

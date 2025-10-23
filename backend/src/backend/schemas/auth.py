@@ -13,6 +13,11 @@ class UserRegisterSchema(BaseModel):
     password: str
 
 
+class UserLoginSchema(BaseModel):
+    email: EmailStr
+    password: str    
+
+
 class Token(BaseModel):
     access_token: str
     expires_in: int

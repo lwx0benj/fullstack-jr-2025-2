@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from "next/navigation";
 
-import NavButton from './navbutton'
+import NavButton from './navButton'
 import { infoUser, logoutUser } from './user'
 
 export default function Sidebar() {

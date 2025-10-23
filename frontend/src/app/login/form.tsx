@@ -6,6 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { saveAuthToken } from "@/lib/auth";
 
 /** Schema de validação com Zod */
 const signInSchema = z
@@ -49,12 +50,22 @@ export function FormSignIn() {
                     .catch(() => ({}))
                     .then((body) => ({ status: response.status, body }))
             )
-            .then(({ status }) =>
-                status >= 200 && status < 300
-                    ? Promise.resolve()
-                    : Promise.reject()
-            )
-            .then(() => {
+            .then(({ status, body }) => {
+                if (status < 200 || status >= 300) {
+                    return Promise.reject(new Error("Erro de autenticação"));
+                }
+
+                if (!body?.access_token || !body?.expires_in) {
+                    return Promise.reject(new Error("Resposta inválida do servidor"));
+                }
+
+                // Salva o token no navegador
+                saveAuthToken({
+                    access_token: String(body.access_token),
+                    token_type: String(body.token_type || "bearer"),
+                    expires_in: Number(body.expires_in),
+                });
+
                 setErrorMessage(null);
                 reset();
                 router.push("/dashboard");

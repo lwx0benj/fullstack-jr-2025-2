@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRouter } from "next/navigation";
 
 import NavButton from './navbutton'
-import { infoUser } from './user'
+import { infoUser, logoutUser } from './user'
 
 export default function Sidebar() {
     const [user, setUser] = useState<{ name: string } | null>(null)
@@ -23,6 +23,15 @@ export default function Sidebar() {
         loadUser()
     }, [])
 
+    async function handleLogout() {
+        const success = await logoutUser();
+        if (success) {
+            router.push("/login");
+        } else {
+            throw new Error("Erro ao realizar logout. Tente novamente.");
+        }
+    }
+
     return (
         <div className="flex h-full flex-col justify-between p-6">
             <div>
@@ -39,7 +48,9 @@ export default function Sidebar() {
                     <NavButton icon="task" label="Tarefas" active={false} />
                 </nav>
             </div>
-            <button className="mt-6 w-full rounded-xl bg-white/20 px-4 py-3 text-center text-base font-medium text-white hover:bg-white/25 focus:outline-none">
+            <button
+                onClick={handleLogout}
+                className="mt-6 w-full rounded-xl bg-white/20 px-4 py-3 text-center text-base font-medium text-white hover:bg-white/25 focus:outline-none">
                 Sair
             </button>
         </div>

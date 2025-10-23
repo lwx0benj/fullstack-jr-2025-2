@@ -199,3 +199,73 @@ def test_userinfo_user_not_found_returns_404(client, monkeypatch, session):
     assert resp.status_code == HTTPStatus.NOT_FOUND
     body = resp.json()
     assert body.get("detail") == "Usuário não encontrado."
+
+# Logout
+def test_logout_success_revokes_token_and_returns_204(client, session):
+
+    user = _create_user(session)
+    login_payload = {"email": user.email, "password": "S3nh@F0rte"}
+    login_resp = client.post("/api/auth/login", json=login_payload)
+    assert login_resp.status_code == HTTPStatus.OK
+    token = login_resp.json()["access_token"]
+
+
+    resp = client.post(
+        "/api/auth/logout",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+
+    userinfo_resp = client.get(
+        "/api/auth/userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert userinfo_resp.status_code == HTTPStatus.UNAUTHORIZED
+    assert userinfo_resp.json().get("detail") == "Token inválido ou expirado."
+
+
+def test_logout_is_idempotent(client, session):
+    user = _create_user(session, email="ada2@example.com")
+    login_payload = {"email": user.email, "password": "S3nh@F0rte"}
+    login_resp = client.post("/api/auth/login", json=login_payload)
+    assert login_resp.status_code == HTTPStatus.OK
+    token = login_resp.json()["access_token"]
+
+
+    resp1 = client.post(
+        "/api/auth/logout",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    resp2 = client.post(
+        "/api/auth/logout",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+
+    assert resp1.status_code == HTTPStatus.NO_CONTENT
+    assert resp2.status_code == HTTPStatus.NO_CONTENT
+
+    userinfo_resp = client.get(
+        "/api/auth/userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert userinfo_resp.status_code == HTTPStatus.UNAUTHORIZED
+    assert userinfo_resp.json().get("detail") == "Token inválido ou expirado."
+
+
+def test_logout_without_authorization_header_returns_204(client):
+    resp = client.post("/api/auth/logout")
+
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+
+
+def test_logout_with_wrong_scheme_returns_204(client, session):
+    _create_user(session, email="ada3@example.com")
+    resp = client.post(
+        "/api/auth/logout",
+        headers={"Authorization": "Basic abc.def.ghi"},
+    )
+
+    assert resp.status_code == HTTPStatus.NO_CONTENT

@@ -10,8 +10,13 @@ from pwdlib import PasswordHash
 from backend.settings import Settings
 
 
+_auth_singleton: Optional["Auth"] = None
+
 def get_auth():
-    return Auth()
+    global _auth_singleton
+    if _auth_singleton is None:
+        _auth_singleton = Auth()
+    return _auth_singleton
 
 class Auth:
     def __init__(self):
@@ -135,3 +140,6 @@ class Auth:
         except Exception:
             pass
         return False
+
+
+

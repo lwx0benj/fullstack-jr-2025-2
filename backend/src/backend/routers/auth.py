@@ -1,6 +1,7 @@
 from http import HTTPStatus
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi import APIRouter, Depends, HTTPException, Security, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from sqlalchemy import select
@@ -39,7 +40,6 @@ def register(
                 detail='Usuário já cadastrado.',
             )
 
-    auth_service = Auth()
     hashed_password = auth_service.hash_password(user.password)
 
     db_user = User(
@@ -140,3 +140,20 @@ def userinfo(
         )
 
     return UserInfoSchema(id=user.id, name=user.name, email=user.email)
+
+
+@auth.post("/logout", status_code=HTTPStatus.NO_CONTENT)
+def logout(
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    auth: Auth = Depends(get_auth),
+) -> None:
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization[7:].strip()
+        try:
+            auth.revoke_token(token)
+        except Exception:
+            # Ignora erros silenciosamente para manter o endpoint idempotente
+            pass
+
+    # Retorna 204 (No Content)
+    return

@@ -7,3 +7,8 @@ class Settings(BaseSettings):
     )
 
     DATABASE_URL: str
+    JWT_ISSUER: str
+    JWT_AUDIENCE: str
+    JWT_ALGORITHM: str
+    JWT_SECRET: str
+    JWT_TTL_MINUTES: int

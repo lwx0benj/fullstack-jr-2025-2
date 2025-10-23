@@ -11,7 +11,9 @@ dependencies = [
     "fastapi[standard] (>=0.119.1,<0.120.0)",
     "pydantic-settings (>=2.11.0,<3.0.0)",
     "sqlalchemy (>=2.0.44,<3.0.0)",
-    "alembic (>=1.17.0,<2.0.0)"
+    "alembic (>=1.17.0,<2.0.0)",
+    "pyjwt (>=2.10.1,<3.0.0)",
+    "pwdlib[argon2] (>=0.2.1,<0.3.0)",
 ]
 
 [tool.poetry]
@@ -28,14 +30,6 @@ dev = [
     "taskipy (>=1.14.1,<2.0.0)",
     "ruff (>=0.14.1,<0.15.0)"
 ]
-
-[tool.ruff]
-line-length = 79
-extend-exclude = ['migrations']
-
-[tool.ruff.lint]
-preview = true
-select = ['I', 'F', 'E', 'W', 'PL', 'PT']
 
 [tool.ruff.format]
 preview = true

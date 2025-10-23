@@ -115,3 +115,87 @@ def test_login_wrong_password_returns_401(client, session):
     assert resp.status_code == HTTPStatus.UNAUTHORIZED
     body = resp.json()
     assert body.get("detail") == "Credenciais inválidas."
+
+# Userinfo
+def test_userinfo_success_returns_user_info(client, session):
+
+    user = _create_user(session)
+    login_payload = {"email": user.email, "password": "S3nh@F0rte"}
+    login_resp = client.post("/api/auth/login", json=login_payload)
+    assert login_resp.status_code == HTTPStatus.OK
+    token = login_resp.json()["access_token"]
+
+    # Act
+    resp = client.get(
+        "/api/auth/userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    # Assert
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert set(data.keys()) == {"id", "name", "email"}
+    assert data["id"] == user.id
+    assert data["name"] == user.name
+    assert data["email"] == user.email
+
+
+def test_userinfo_missing_token_returns_401(client):
+    resp = client.get("/api/auth/userinfo")
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+    body = resp.json()
+    assert body.get("detail") == "Token ausente ou esquema inválido. Use Authorization: Bearer <token>."
+
+
+def test_userinfo_wrong_scheme_returns_401(client):
+    resp = client.get(
+        "/api/auth/userinfo",
+        headers={"Authorization": "Basic abc.def.ghi"},
+    )
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+    body = resp.json()
+    assert body.get("detail") == "Token ausente ou esquema inválido. Use Authorization: Bearer <token>."
+
+
+def test_userinfo_invalid_token_returns_401(client):
+    resp = client.get(
+        "/api/auth/userinfo",
+        headers={"Authorization": "Bearer invalido.token.aqui"},
+    )
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+    body = resp.json()
+    assert body.get("detail") == "Token inválido ou expirado."
+
+
+def test_userinfo_token_without_sub_returns_401(client, monkeypatch):
+    def fake_verify_token(_self, _token: str):
+        return True, {"email": "x@y.com"}, None
+
+    monkeypatch.setattr(Auth, "verify_token", fake_verify_token)
+
+    resp = client.get(
+        "/api/auth/userinfo",
+        headers={"Authorization": "Bearer qualquer.coisa"},
+    )
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+    body = resp.json()
+    assert body.get("detail") == "Token inválido ou expirado."
+
+
+def test_userinfo_user_not_found_returns_404(client, monkeypatch, session):
+    not_exists = session.get(User, 999999)
+    assert not_exists is None
+
+    def fake_verify_token(_self, _token: str):
+        # ok, payload, err
+        return True, {"sub": "999999"}, None
+
+    monkeypatch.setattr(Auth, "verify_token", fake_verify_token)
+
+    resp = client.get(
+        "/api/auth/userinfo",
+        headers={"Authorization": "Bearer token-valido-mas-user-nao-existe"},
+    )
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    body = resp.json()
+    assert body.get("detail") == "Usuário não encontrado."

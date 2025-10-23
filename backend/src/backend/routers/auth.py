@@ -1,6 +1,8 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -9,7 +11,8 @@ from backend.models.users import User
 from backend.schemas.auth import (
     Token, 
     UserRegisterSchema,
-    UserLoginSchema
+    UserLoginSchema,
+    UserInfoSchema,
 )
 
 from backend.services.auth import get_auth, Auth
@@ -89,3 +92,51 @@ def login(
     )
 
     return Token(**tokens)
+
+
+@auth.get(
+    path='/userinfo',
+    status_code=HTTPStatus.OK,
+    response_model=UserInfoSchema,
+)
+def userinfo(
+    credentials: HTTPAuthorizationCredentials = Security(HTTPBearer(auto_error=False)),
+    session: Session = Depends(get_session),
+    auth_service: Auth = Depends(get_auth),
+):
+    if not credentials or credentials.scheme.lower() != 'bearer':
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Token ausente ou esquema inválido. Use Authorization: Bearer <token>.',
+        )
+
+    token = credentials.credentials
+
+    try:
+        ok, payload, _ = auth_service.verify_token(token)
+        if not ok:
+            raise HTTPException(
+                status_code=HTTPStatus.UNAUTHORIZED,
+                detail='Token inválido ou expirado.',
+            )
+        
+        user_id = payload.get('sub')
+        if user_id is None:
+            raise HTTPException(
+                status_code=HTTPStatus.UNAUTHORIZED,
+                detail='Token inválido: subject ausente.',
+            )
+    except Exception:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Token inválido ou expirado.',
+        )
+
+    user = session.get(User, user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Usuário não encontrado.',
+        )
+
+    return UserInfoSchema(id=user.id, name=user.name, email=user.email)

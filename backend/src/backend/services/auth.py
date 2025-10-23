@@ -90,7 +90,6 @@ class Auth:
         subject: str | int,
         extra_claims: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Gera um token único (sem refresh)."""
         token = self._encode(
             sub=subject,
             ttl=timedelta(minutes=self.settings.JWT_TTL_MINUTES),
@@ -105,7 +104,6 @@ class Auth:
     def verify_token(
         self, token: str
     ) -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
-        """Verifica validade e assinatura do token."""
         try:
             payload = self._decode(token)
             return True, payload, None
@@ -115,11 +113,9 @@ class Auth:
             return False, None, f'invalid: {e}'
 
     def revoke_by_jti(self, jti: str) -> None:
-        """Revoga manualmente um token pelo seu JTI."""
         self._revoked_jtis.add(jti)
 
     def revoke_token(self, token: str) -> bool:
-        """Revoga o token informado (mesmo expirado)."""
         try:
             options = {'verify_exp': False, 'require': ['iss', 'sub', 'jti']}
             kwargs: Dict[str, Any] = {

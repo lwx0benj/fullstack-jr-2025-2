@@ -1,5 +1,3 @@
-// app/page.tsx
-import Image from 'next/image'
 import Sidebar from './sidebar'
 import EmptyState from './empty_state'
 

@@ -1,4 +1,4 @@
-type StoredAuth = {
+export type StoredAuth = {
     access_token: string;
     token_type: string; // "bearer"
     expires_at: number;

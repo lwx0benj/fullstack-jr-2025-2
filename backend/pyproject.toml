@@ -1,9 +1,9 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = ""
+description = "Backend/API"
 authors = [
-    {name = "Your Name",email = "you@example.com"}
+    {name = "Benjamin Silva",email = "benjamin.silva.bs@ufpi.edu.br"}
 ]
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
@@ -16,7 +16,9 @@ dependencies = [
     "pwdlib[argon2] (>=0.2.1,<0.3.0)",
 ]
 
+
 [tool.poetry]
+package-mode = false
 packages = [{include = "backend", from = "src"}]
 
 [build-system]

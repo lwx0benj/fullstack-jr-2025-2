@@ -2,9 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.routers.auth import auth
+from backend.routers.task import tasks
 
 app = FastAPI()
 app.include_router(auth)
+app.include_router(tasks)
 
 origins = [
     'http://localhost:3000',

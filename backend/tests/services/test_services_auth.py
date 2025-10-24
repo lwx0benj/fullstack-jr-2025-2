@@ -4,15 +4,15 @@ from datetime import datetime, timedelta, timezone
 import jwt
 import pytest
 
-import backend.services.auth as auth_module  
-from backend.services.auth import Auth  
+import backend.services.auth as auth_module
+from backend.services.auth import Auth
 
 
 @pytest.fixture
 def patched_settings(monkeypatch):
     class TestSettings:
         JWT_ISSUER = 'test-issuer'
-        JWT_AUDIENCE = None 
+        JWT_AUDIENCE = None
         JWT_ALGORITHM = 'HS256'
         JWT_SECRET = 'test-secret'
         JWT_TTL_MINUTES = 1
@@ -89,7 +89,6 @@ def test_revoke_token_helper(auth):
 
 
 def test_audience_happy_and_unhappy_paths(auth, patched_settings):
-
     auth.settings.JWT_AUDIENCE = 'web-client'
     token = auth._encode(sub='u1', ttl=timedelta(minutes=5))
 

@@ -10,7 +10,8 @@ from pwdlib import PasswordHash
 from backend.settings import Settings
 
 
-_auth_singleton: Optional["Auth"] = None
+_auth_singleton: Optional['Auth'] = None
+
 
 def get_auth():
     global _auth_singleton
@@ -18,9 +19,10 @@ def get_auth():
         _auth_singleton = Auth()
     return _auth_singleton
 
+
 class Auth:
     def __init__(self):
-        self.settings = Settings() 
+        self.settings = Settings()
         self._pwd = PasswordHash.recommended()
         self._revoked_jtis: set[str] = set()
 
@@ -140,6 +142,3 @@ class Auth:
         except Exception:
             pass
         return False
-
-
-

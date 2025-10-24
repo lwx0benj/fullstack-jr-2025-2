@@ -1,8 +1,8 @@
-from pydantic import BaseModel, EmailStr
-from typing import List, Optional
-from backend.models.users import Task, TaskPriority, TaskStatus
-
 from datetime import date, datetime
+
+from pydantic import BaseModel
+from typing import Optional
+from backend.models.users import TaskPriority, TaskStatus
 
 
 class TaskBaseSchema(BaseModel):
@@ -14,7 +14,7 @@ class TaskBaseSchema(BaseModel):
 
 
 class TaskCreateSchema(TaskBaseSchema):
-    title: str 
+    title: str
 
 
 class TaskUpdateSchema(TaskBaseSchema):
@@ -34,6 +34,3 @@ class TaskOutSchema(BaseModel):
     due_date: Optional[date] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True 

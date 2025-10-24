@@ -8,9 +8,9 @@ from backend.models.users import User
 
 def _create_user(session) -> User:
     user = User(
-        name="Benjamin Silva",
-        email="benjamin.silva@email.com",
-        hashed_password="hashed_password",
+        name='Benjamin Silva',
+        email='benjamin.silva@email.com',
+        hashed_password='hashed_password',
     )
     session.add(user)
     session.commit()
@@ -23,28 +23,28 @@ def test_create_task_defaults(session, mock_db_time):
 
     with mock_db_time(model=Task) as mocked_time:
         new_task = Task(
-            title="Pagar boletos",
+            title='Pagar boletos',
             user_id=user.id,
         )
         session.add(new_task)
         session.commit()
 
-    task = session.scalar(select(Task).where(Task.title == "Pagar boletos"))
+    task = session.scalar(select(Task).where(Task.title == 'Pagar boletos'))
 
     data = asdict(task)
     # Remover o relacionamento para comparar apenas os campos persistidos
-    data.pop("user", None)
+    data.pop('user', None)
 
     assert data == {
-        "id": 1,
-        "title": "Pagar boletos",
-        "description": None,
-        "status": TaskStatus.PENDENTE,
-        "priority": TaskPriority.MEDIA,
-        "due_date": None,
-        "created_at": mocked_time,
-        "updated_at": mocked_time,
-        "user_id": user.id,
+        'id': 1,
+        'title': 'Pagar boletos',
+        'description': None,
+        'status': TaskStatus.PENDENTE,
+        'priority': TaskPriority.MEDIA,
+        'due_date': None,
+        'created_at': mocked_time,
+        'updated_at': mocked_time,
+        'user_id': user.id,
     }
 
 
@@ -54,8 +54,8 @@ def test_create_task_full_fields(session, mock_db_time):
 
     with mock_db_time(model=Task) as mocked_time:
         new_task = Task(
-            title="Entregar relatório",
-            description="Relatório mensal de desempenho",
+            title='Entregar relatório',
+            description='Relatório mensal de desempenho',
             status=TaskStatus.CONCLUIDA,
             priority=TaskPriority.ALTA,
             due_date=venc,
@@ -64,31 +64,33 @@ def test_create_task_full_fields(session, mock_db_time):
         session.add(new_task)
         session.commit()
 
-    task = session.scalar(select(Task).where(Task.title == "Entregar relatório"))
+    task = session.scalar(select(Task).where(Task.title == 'Entregar relatório'))
 
     data = asdict(task)
-    data.pop("user", None)
+    data.pop('user', None)
 
-    assert data == {
-        "id": 1,  # se o banco estiver limpo por teste; se não, troque para `assert task.id > 0`
-        "title": "Entregar relatório",
-        "description": "Relatório mensal de desempenho",
-        "status": TaskStatus.CONCLUIDA,
-        "priority": TaskPriority.ALTA,
-        "due_date": venc,
-        "created_at": mocked_time,
-        "updated_at": mocked_time,
-        "user_id": user.id,
-    }
-
+    assert (
+        data
+        == {
+            'id': 1,  # se o banco estiver limpo por teste; se não, troque para `assert task.id > 0`
+            'title': 'Entregar relatório',
+            'description': 'Relatório mensal de desempenho',
+            'status': TaskStatus.CONCLUIDA,
+            'priority': TaskPriority.ALTA,
+            'due_date': venc,
+            'created_at': mocked_time,
+            'updated_at': mocked_time,
+            'user_id': user.id,
+        }
+    )
 
 
 def test_task_user_relationship_backref(session, mock_db_time):
     user = _create_user(session)
 
     with mock_db_time(model=Task):
-        t1 = Task(title="Task A", user_id=user.id)
-        t2 = Task(title="Task B", user_id=user.id)
+        t1 = Task(title='Task A', user_id=user.id)
+        t2 = Task(title='Task B', user_id=user.id)
         session.add_all([t1, t2])
         session.commit()
 
@@ -96,7 +98,7 @@ def test_task_user_relationship_backref(session, mock_db_time):
     # Como é dataclass, garantir que a lista está populada após refresh
     session.refresh(user)
     titles = sorted([t.title for t in user.tasks])
-    assert titles == ["Task A", "Task B"]
+    assert titles == ['Task A', 'Task B']
 
     # Garantia adicional: buscar por user_id
     count = session.scalars(select(Task).where(Task.user_id == user.id)).all()

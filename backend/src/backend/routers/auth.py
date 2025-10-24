@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from backend.models.database import get_session
 from backend.models.users import User
 from backend.schemas.auth import (
-    Token, 
+    Token,
     UserRegisterSchema,
     UserLoginSchema,
     UserInfoSchema,
@@ -27,9 +27,9 @@ auth = APIRouter(prefix='/api/auth', tags=['auth'])
     response_model=Token,
 )
 def register(
-    user: UserRegisterSchema, 
+    user: UserRegisterSchema,
     session: Session = Depends(get_session),
-    auth_service: Auth = Depends(get_auth)
+    auth_service: Auth = Depends(get_auth),
 ):
     db_user = session.scalar(select(User).where(User.email == user.email))
 
@@ -54,7 +54,7 @@ def register(
 
     tokens = auth_service.generate_token(
         subject=db_user.id,
-        extra_claims={"email": db_user.email},
+        extra_claims={'email': db_user.email},
     )
 
     return Token(**tokens)
@@ -70,15 +70,12 @@ def login(
     session: Session = Depends(get_session),
     auth_service: Auth = Depends(get_auth),
 ):
-
     db_user = session.scalar(select(User).where(User.email == credentials.email))
     if db_user is None:
-
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED,
             detail='Credenciais inválidas.',
         )
-
 
     if not auth_service.verify_password(credentials.password, db_user.hashed_password):
         raise HTTPException(
@@ -88,7 +85,7 @@ def login(
 
     tokens = auth_service.generate_token(
         subject=db_user.id,
-        extra_claims={"email": db_user.email, "name": db_user.name},
+        extra_claims={'email': db_user.email, 'name': db_user.name},
     )
 
     return Token(**tokens)
@@ -119,7 +116,7 @@ def userinfo(
                 status_code=HTTPStatus.UNAUTHORIZED,
                 detail='Token inválido ou expirado.',
             )
-        
+
         user_id = payload.get('sub')
         if user_id is None:
             raise HTTPException(
@@ -142,12 +139,12 @@ def userinfo(
     return UserInfoSchema(id=user.id, name=user.name, email=user.email)
 
 
-@auth.post("/logout", status_code=HTTPStatus.NO_CONTENT)
+@auth.post('/logout', status_code=HTTPStatus.NO_CONTENT)
 def logout(
-    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    authorization: Optional[str] = Header(default=None, alias='Authorization'),
     auth: Auth = Depends(get_auth),
 ) -> None:
-    if authorization and authorization.lower().startswith("bearer "):
+    if authorization and authorization.lower().startswith('bearer '):
         token = authorization[7:].strip()
         try:
             auth.revoke_token(token)

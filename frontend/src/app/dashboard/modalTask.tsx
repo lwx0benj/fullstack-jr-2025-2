@@ -1,213 +1,200 @@
 "use client";
 
-import { useState } from 'react';
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { de } from 'zod/locales';
+import * as React from "react";
+import { Dialog } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
+type Priority = "baixa" | "media" | "alta";
+type Status = "pendente" | "concluida";
 
-const inter = Inter({ subsets: ["latin"] });
-
-
-function PriorityPills({
-    value,
-    onChange,
-}: {
-    value: "Baixa" | "Média" | "Alta";
-    onChange: (v: "Baixa" | "Média" | "Alta") => void;
-}) {
-    const map = {
-        "Baixa": "bg-emerald-500 text-white",
-        "Média": "bg-amber-400 text-white",
-        "Alta": "bg-red-400 text-white",
-    } as const;
-
-    const all: Array<"Baixa" | "Média" | "Alta"> = ["Baixa", "Média", "Alta"];
-
-    return (
-        <div className="flex justify-start gap-8">
-            {all.map((opt) => {
-                const active = opt === value;
-                return (
-                    <button
-                        key={opt}
-                        type="button"
-                        onClick={() => onChange(opt)}
-                        className={[
-                            "rounded-full px-3 py-1 text-base leading-5 ring-1 ring-gray-200 transition",
-                            active
-                                ? `${map[opt]}`
-                                : "bg-gray-100 text-gray-700 hover:bg-white",
-                        ].join(" ")}
-                        aria-pressed={active}
-                    >
-                        {opt}
-                    </button>
-                );
-            })}
-        </div>
-    );
-}
-
-
-function StatusBadges({
-    value,
-    onChange,
-}: {
-    value: "A Fazer" | "Em Progresso" | "Concluída";
-    onChange: (v: "A Fazer" | "Em Progresso" | "Concluída") => void;
-}) {
-    const map = {
-        "A Fazer": "bg-red-400 text-white",
-        "Em Progresso": "bg-amber-400 text-white",
-        Concluída: "bg-emerald-500 text-white",
-    } as const;
-
-    const all: Array<"A Fazer" | "Em Progresso" | "Concluída"> = [
-        "A Fazer",
-        "Em Progresso",
-        "Concluída",
-    ];
-
-    return (
-        <div className="flex gap-8">
-            {all.map((opt) => {
-                const active = opt === value;
-                return (
-                    <button
-                        key={opt}
-                        type="button"
-                        onClick={() => onChange(opt)}
-                        className={[
-                            "rounded-full px-2 py-1 text-base leading-5 ring-1 ring-gray-200 transition",
-                            active
-                                ? `${map[opt]}`
-                                : "bg-gray-100 text-gray-700 hover:bg-white",
-                        ].join(" ")}
-                        aria-pressed={active}
-                    >
-                        {opt}
-                    </button>
-                );
-            })}
-        </div>
-    );
-}
-
-
-type ModalTaskProps = {
-    open: boolean;               // controla abrir/fechar externamente
-    onClose: () => void;         // callback para fechar
+export type TaskFormData = {
+    titulo: string;
+    prioridade: Priority;
+    status: Status;
+    prazo?: string;
+    descricao?: string;
 };
 
-export function ModalTask({ open, onClose }: ModalTaskProps) {
-    const [priority, setPriority] = useState<"Baixa" | "Média" | "Alta">("Alta");
-    const [status, setStatus] = useState<"A Fazer" | "Em Progresso" | "Concluída">("A Fazer");
+type ModalTaskProps = {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSave?: (data: TaskFormData) => void;
+};
 
-    if (!open) return null;
+export function ModalTask({ open, onOpenChange, onSave }: ModalTaskProps) {
+    const [form, setForm] = React.useState<TaskFormData>({
+        titulo: "",
+        prioridade: "media",
+        status: "pendente",
+        prazo: "",
+        descricao: "",
+    });
+
+    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        onSave?.(form);
+        setForm({
+            titulo: "",
+            prioridade: "media",
+            status: "pendente",
+            prazo: "",
+            descricao: "",
+        })
+        onOpenChange(false);
+    }
+
+    if (!open) return null; // evita renderização fora de contexto
 
     return (
-        // Overlay com blur e espaçamento responsivo nas bordas
-        <div
-            className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4 sm:p-6"
-            role="presentation"
-            aria-hidden={false}
-            onClick={(e) => {
-                // clique fora do dialog fecha
-                if (e.target === e.currentTarget) onClose();
-            }}
-        >
-            {/* Dialog responsivo: cresce até 3xl e respeita o viewport */}
-            <section
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="task-dialog-title"
-                className={`${inter.className} relative w-full max-w-1/2 rounded-2xl bg-white  p-4 px-8 shadow-lg`}
-            >
-                {/* Fechar */}
-                <button
-                    onClick={onClose}
-                    aria-label="Fechar"
-                    className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full border border-gray-300 bg-white text-gray-700 transition hover:rotate-90 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" role="img" aria-hidden="true">
-                        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                </button>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            {/* Overlay */}
+            <div
+                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+                onClick={(e) => {
+                    if (e.target === e.currentTarget) onOpenChange(false);
+                }}
+            />
 
-                {/* Form */}
-                <form
-                    className="space-y-6 px-4 pr-8"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        alert("Tarefa salva!");
-                    }}
-                >
-                    <div className="text-2xl font-bold text-gray-900" id="task-dialog-title">
-                        Nova Tarefa
-                    </div>
-                    {/* Título: rótulo coluna fixa + campo fluido */}
-                    <div className="grid-cols-1 items-center gap-3">
-                        <label htmlFor="titulo" className="font-semibold text-gray-800 sm:text-lg">
-                            Título
-                        </label>
-                        <input
-                            id="titulo"
-                            name="titulo"
-                            placeholder="Ex.: Preparar apresentação de status"
-                            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-[clamp(0.95rem,1vw,1rem)] leading-6 outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500"
-                            required
-                        />
-                    </div>
-
-                    {/* Linha: Prioridade | Status (quebra para 1 col no mobile) */}
-                    <div className="grid grid-cols-1 gap-2">
-                        <div className="grid grid-cols-1 items-center gap-2">
-                            <span className="font-semibold text-gray-800 sm:text-lg">Prioridade</span>
-                            <PriorityPills value={priority} onChange={setPriority} />
-                        </div>
-
-                        <div className="grid items-center gap-2">
-                            <span className="font-semibold text-gray-800 sm:text-lg">Status</span>
-                            <StatusBadges value={status} onChange={setStatus} />
-                        </div>
-                    </div>
-
-                    {/* Descrição ocupa toda a largura */}
-                    <div className="grid gap-3 sm:grid-cols-1">
-                        <label
-                            htmlFor="descricao"
+            {/* Modal */}
+            <div className="fixed inset-0 z-50 grid place-items-center p-4 sm:p-6">
+                <div className="w-full max-w-[560px] rounded-2xl bg-white border border-blue-100 shadow-lg p-6 text-blue-900">
+                    {/* Header */}
+                    <div className="mb-4">
+                        <h2
                             id="task-dialog-title"
-                            className="text-base font-semibold text-gray-800 sm:text-lg self-start"
+                            className="text-xl font-bold text-blue-700"
                         >
-                            Descrição
-                        </label>
-                        <textarea
-                            id="descricao"
-                            name="descricao"
-                            placeholder="Detalhe o que precisa ser feito, critérios de aceite, links, etc."
-                            className="min-h-[120px] w-full resize-y rounded-md border border-gray-300 bg-white p-3 text-[15px] leading-6 outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500"
-                        />
+                            Nova Tarefa
+                        </h2>
+                        <p className="text-blue-500">
+                            Preencha os campos abaixo e clique em <b>Salvar</b>.
+                        </p>
                     </div>
 
-                    {/* Ações: alinhar à direita em telas ≥ sm, empilhar no mobile */}
-                    <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:justify-end">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="inline-flex items-center justify-center rounded-md bg-neutral-900 px-5 py-2 text-sm font-semibold text-white shadow transition hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 active:translate-y-1px"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            className="inline-flex items-center justify-center rounded-md bg-blue-500 px-5 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 active:translate-y-1px"
-                        >
-                            Salvar
-                        </button>
-                    </div>
-                </form>
-            </section>
-        </div>
+                    {/* Formulário */}
+                    <form className="grid gap-5" onSubmit={handleSubmit}>
+                        {/* Título */}
+                        <div className="grid gap-2">
+                            <Label htmlFor="titulo" className="text-blue-900 font-medium">
+                                Título
+                            </Label>
+                            <Input
+                                id="titulo"
+                                name="titulo"
+                                required
+                                placeholder="Ex.: Preparar apresentação"
+                                className="bg-blue-50 border-blue-200 text-blue-900 placeholder:text-blue-300 focus:ring-2 focus:ring-blue-300"
+                                value={form.titulo}
+                                onChange={(e) =>
+                                    setForm((f) => ({ ...f, titulo: e.target.value }))
+                                }
+                            />
+                        </div>
+
+                        {/* Prioridade e Status */}
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label className="text-blue-900 font-medium">Prioridade</Label>
+                                <Select
+                                    value={form.prioridade}
+                                    onValueChange={(v: Priority) =>
+                                        setForm((f) => ({ ...f, prioridade: v }))
+                                    }
+                                >
+                                    <SelectTrigger className="bg-blue-50 border-blue-200 text-blue-900 focus:ring-2 focus:ring-blue-300">
+                                        <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white text-blue-900 border-blue-200">
+                                        <SelectItem value="baixa">Baixa</SelectItem>
+                                        <SelectItem value="media">Média</SelectItem>
+                                        <SelectItem value="alta">Alta</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label className="text-blue-900 font-medium">Status</Label>
+                                <Select
+                                    value={form.status}
+                                    onValueChange={(v: Status) =>
+                                        setForm((f) => ({ ...f, status: v }))
+                                    }
+                                >
+                                    <SelectTrigger className="bg-blue-50 border-blue-200 text-blue-900 focus:ring-2 focus:ring-blue-300">
+                                        <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white text-blue-900 border-blue-200">
+                                        <SelectItem value="pendente">Pendente</SelectItem>
+                                        <SelectItem value="concluida">Concluída</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        {/* Prazo */}
+                        <div className="grid gap-2">
+                            <Label htmlFor="prazo" className="text-blue-900 font-medium">
+                                Prazo
+                            </Label>
+                            <Input
+                                id="prazo"
+                                name="prazo"
+                                type="date"
+                                className="bg-blue-50 border-blue-200 text-blue-900 focus:ring-2 focus:ring-blue-300"
+                                value={form.prazo}
+                                onChange={(e) =>
+                                    setForm((f) => ({ ...f, prazo: e.target.value }))
+                                }
+                            />
+                        </div>
+
+                        {/* Descrição */}
+                        <div className="grid gap-2">
+                            <Label htmlFor="descricao" className="text-blue-900 font-medium">
+                                Descrição
+                            </Label>
+                            <Textarea
+                                id="descricao"
+                                name="descricao"
+                                placeholder="Detalhes, critérios de aceite, links, etc."
+                                className="min-h-[120px] bg-blue-50 border-blue-200 text-blue-900 placeholder:text-blue-300 focus:ring-2 focus:ring-blue-300"
+                                value={form.descricao}
+                                onChange={(e) =>
+                                    setForm((f) => ({ ...f, descricao: e.target.value }))
+                                }
+                            />
+                        </div>
+
+                        {/* Footer */}
+                        <div className="mt-4 flex justify-end gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                                onClick={() => onOpenChange(false)}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="submit"
+                                className="bg-blue-500 hover:bg-blue-600 text-white"
+                            >
+                                Salvar
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </Dialog>
     );
 }

@@ -6,7 +6,12 @@ import EmptyState from './emptyState'
 import { ModalTask } from './modalTask'
 
 export default function Page() {
-    const [isOpen, setIsOpen] = useState(false);
+    const [open, setOpen] = useState(false);
+
+    function handleSave(data: any) {
+        // aqui você pode enviar para API/DB
+        console.log("Salvar tarefa:", data);
+    }
     return (
         <main className="bg-white">
             <div className="w-full px-4 py-6 lg:px-8">
@@ -21,7 +26,7 @@ export default function Page() {
                                 <p className="mt-2 text-gray-600">Mantenha o foco! Uma tarefa de cada vez.</p>
                             </div>
                             <button
-                                onClick={() => setIsOpen(true)}
+                                onClick={() => setOpen(true)}
                                 className="mt-1 inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90 focus:outline-none">
                                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-gray-800 text-white">+</span>
                                 Criar Tarefa
@@ -37,7 +42,7 @@ export default function Page() {
                     </section>
                 </div>
             </div>
-            <ModalTask open={isOpen} onClose={() => setIsOpen(false)} />
+            <ModalTask open={open} onOpenChange={setOpen} onSave={handleSave}  />
         </main>
     )
 }

@@ -27,7 +27,6 @@ export default function Login() {
                     </span>
                     <div className="absolute inset-0 p-16">
                         <div className="relative mx-auto h-full max-w-[640px]">
-                            {/* Substitua por um arquivo em public/ com nome igual abaixo */}
                             <Image
                                 src="/add-tasks-cuate.svg"
                                 alt="Ilustração de pessoa marcando tarefas em um bloco de notas, representando organização de tarefas."

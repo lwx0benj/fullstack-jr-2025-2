@@ -53,7 +53,7 @@ export function ModalTask({ open, onOpenChange, onSave }: ModalTaskProps) {
         onOpenChange(false);
     }
 
-    if (!open) return null; // evita renderização fora de contexto
+    if (!open) return null; 
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

@@ -149,7 +149,7 @@ def logout(
         try:
             auth.revoke_token(token)
         except Exception:
-            # Ignora erros silenciosamente para manter o endpoint idempotente
+            # Ignora erros silenciosamente
             pass
 
     # Retorna 204 (No Content)

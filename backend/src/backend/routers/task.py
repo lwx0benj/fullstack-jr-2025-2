@@ -12,8 +12,6 @@ from backend.models.database import get_session
 from backend.models.users import User, Task
 from backend.services.auth import get_auth, Auth
 
-# --------- Schemas (pode mover para backend/schemas/tasks.py) --------- #
-
 
 from backend.schemas.task import (
     TaskCreateSchema,
@@ -90,7 +88,7 @@ def _get_task_owned_or_404(session: Session, user: User, task_id: int) -> Task:
     return task
 
 
-# -------------------- Rotas -------------------- #
+# -------------------- Endpoint -------------------- #
 @tasks.get(
     '',
     status_code=HTTPStatus.OK,
@@ -134,7 +132,6 @@ def create_task(
     if hasattr(task, 'user'):
         task.user = current_user
     else:
-        # fallback, se seu modelo não tiver relationship
         task.user_id = current_user.id  # type: ignore[attr-defined]
 
     session.add(task)
@@ -176,7 +173,6 @@ def update_task(
     task = _get_task_owned_or_404(session, current_user, task_id)
     data = _safe_dump(payload)
 
-    # Só atualiza campos presentes
     for field in ('title', 'description', 'priority', 'status', 'due_date'):
         if field in data and data[field] is not None:
             setattr(task, field, data[field])

@@ -32,7 +32,6 @@ def test_create_task_defaults(session, mock_db_time):
     task = session.scalar(select(Task).where(Task.title == 'Pagar boletos'))
 
     data = asdict(task)
-    # Remover o relacionamento para comparar apenas os campos persistidos
     data.pop('user', None)
 
     assert data == {
@@ -72,7 +71,7 @@ def test_create_task_full_fields(session, mock_db_time):
     assert (
         data
         == {
-            'id': 1,  # se o banco estiver limpo por teste; se não, troque para `assert task.id > 0`
+            'id': 1,  # banco limpo para teste;
             'title': 'Entregar relatório',
             'description': 'Relatório mensal de desempenho',
             'status': TaskStatus.CONCLUIDA,
@@ -94,12 +93,11 @@ def test_task_user_relationship_backref(session, mock_db_time):
         session.add_all([t1, t2])
         session.commit()
 
-    # Acessa via backref
-    # Como é dataclass, garantir que a lista está populada após refresh
+
     session.refresh(user)
     titles = sorted([t.title for t in user.tasks])
     assert titles == ['Task A', 'Task B']
 
-    # Garantia adicional: buscar por user_id
+
     count = session.scalars(select(Task).where(Task.user_id == user.id)).all()
     assert len(count) == 2

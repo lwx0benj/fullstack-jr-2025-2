@@ -28,9 +28,6 @@ class User:
     )
 
 
-# Reutilize o mesmo registry já definido:
-# table_registry = registry()
-
 
 class TaskStatus(str, enum.Enum):
     PENDENTE = 'pendente'
@@ -74,5 +71,5 @@ class Task:
     __table_args__ = (
         Index(
             'ix_tasks_status_priority', 'status', 'priority'
-        ),  # ajuste o nome conforme o teste
+        ), 
     )

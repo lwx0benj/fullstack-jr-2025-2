@@ -12,7 +12,7 @@ origins = [
     'http://localhost:3000',
 ]
 
-# Adicione o middleware CORS
+# Adicionar o middleware CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

@@ -6,7 +6,7 @@ from backend.models.users import User, Task
 from backend.services.auth import Auth
 
 
-# --- helpers reutilizados/análogos aos de auth ---
+# --- helpers ---
 
 
 def _create_user(
@@ -88,7 +88,6 @@ def test_get_task_by_id_missing_token_returns_401(client, session):
     # Assert
     assert resp.status_code == HTTPStatus.UNAUTHORIZED
     body = resp.json()
-    # mesma mensagem usada pelos endpoints protegidos (vide testes de userinfo)
     assert (
         body.get('detail')
         == 'Token ausente ou esquema inválido. Use Authorization: Bearer <token>.'
@@ -163,7 +162,6 @@ def test_create_task_success_persists_and_returns_task(client, session):
     assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
 
-    # o schema pode ter campos extras; garantimos os principais
     assert isinstance(data.get("id"), int)
     assert data["title"] == payload["title"]
     assert data.get("description") == payload["description"]
@@ -171,7 +169,6 @@ def test_create_task_success_persists_and_returns_task(client, session):
     assert data.get("status") == payload["status"]
     assert data.get("due_date") in {"2025-12-31", "2025-12-31T00:00:00"}  # depende do schema
 
-    # Verifica persistência e dono
     db_task = session.get(Task, data["id"])
     assert db_task is not None
     assert db_task.title == payload["title"]
@@ -180,7 +177,6 @@ def test_create_task_success_persists_and_returns_task(client, session):
     assert getattr(db_task, "status", None) == payload["status"]
     assert str(getattr(db_task, "due_date", ""))[:10] == "2025-12-31"
 
-    # relacionamento pode ser via .user ou via campo foreign key
     if hasattr(db_task, "user"):
         assert db_task.user.id == user.id
     else:
@@ -209,13 +205,12 @@ def test_create_task_without_optional_fields_sets_nulls(client, session):
     assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
     assert data["title"] == payload["title"]
-    # opcionais devem ser None/ausentes no retorno, dependendo do schema
+ 
     assert data.get("description") in (None, "")
     assert data.get("priority") in (None, "alta")
     assert data.get("status") in (None, "pendente")
     assert data.get("due_date") in (None, "")
 
-    # no banco também devem estar nulos
     db_task = session.get(Task, data["id"])
     assert db_task is not None
     assert getattr(db_task, "description", None) in (None, "")
@@ -244,7 +239,6 @@ def test_create_task_missing_token_returns_401(client, session):
 def test_create_task_with_wrong_scheme_returns_401(client, session):
     # Arrange
     _create_user(session, email="ada3@example.com")
-    # tenta criar com header errado
     payload = {"title": "Header errado"}
 
     # Act
